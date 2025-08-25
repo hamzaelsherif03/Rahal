@@ -18,8 +18,8 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   title: {
-    default: "SKIRTÉ - Luxury Pleated Skirts Collection | Premium Designer Skirts",
-    template: "%s | SKIRTÉ",
+    default: "Rahal - Luxury Pleated Skirts Collection | Premium Designer Skirts",
+    template: "%s | Rahal",
   },
   description:
     "Experience SKIRTÉ's exclusive collection of ultra-luxury skirts, meticulously crafted from the world's finest materials. Timeless elegance meets contemporary sophistication. Complimentary shipping worldwide.",
