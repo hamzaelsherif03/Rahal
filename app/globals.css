@@ -1,0 +1,170 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Rahal luxury feminine color palette inspired by rich purple/magenta pleated skirts */
+  --background: oklch(1 0 0); /* Pure white for elegant backdrop */
+  --foreground: oklch(0.278 0.013 258.338); /* Dark gray #374151 for sophisticated text */
+  --card: oklch(0.971 0.024 320.207); /* Soft lavender #f8f0f6 for premium cards */
+  --card-foreground: oklch(0.608 0.15 302.71); /* Rich magenta #9b59b6 for card highlights */
+  --popover: oklch(0.855 0.106 339.67); /* Light pastel pink #f4a6d7 for popovers */
+  --popover-foreground: oklch(0.608 0.15 302.71); /* Rich magenta for popover text */
+  --primary: oklch(0.608 0.15 302.71); /* Rich magenta #9b59b6 for primary actions */
+  --primary-foreground: oklch(1 0 0); /* Pure white text on primary */
+  --secondary: oklch(0.548 0.22 328.363); /* Vibrant fuchsia #d5006d for secondary */
+  --secondary-foreground: oklch(1 0 0); /* White text on secondary */
+  --muted: oklch(0.858 0.048 340.891); /* Delicate blush pink #e8c9d4 for muted elements */
+  --muted-foreground: oklch(0.608 0.15 302.71); /* Rich magenta for muted text */
+  --accent: oklch(0.855 0.106 339.67); /* Light pastel pink #f4a6d7 for accents */
+  --accent-foreground: oklch(0.608 0.15 302.71); /* Rich magenta for accent text */
+  --destructive: oklch(0.577 0.245 27.325); /* Refined red for errors */
+  --destructive-foreground: oklch(1 0 0); /* White text on destructive */
+  --border: oklch(0.858 0.048 340.891); /* Blush pink #e8c9d4 for borders */
+  --input: oklch(1 0 0); /* White for input fields */
+  --ring: oklch(0.548 0.22 328.363); /* Fuchsia #d5006d for focus rings */
+  --chart-1: oklch(0.608 0.15 302.71); /* Rich magenta for charts */
+  --chart-2: oklch(0.548 0.22 328.363); /* Fuchsia for charts */
+  --chart-3: oklch(0.855 0.106 339.67); /* Light pastel pink for charts */
+  --chart-4: oklch(0.858 0.048 340.891); /* Blush pink for charts */
+  --chart-5: oklch(0.971 0.024 320.207); /* Soft lavender for charts */
+  --radius: 0.5rem; /* Rounded corners for feminine softness */
+  --sidebar: oklch(0.971 0.024 320.207); /* Soft lavender for sidebar */
+  --sidebar-foreground: oklch(0.608 0.15 302.71); /* Rich magenta for sidebar text */
+  --sidebar-primary: oklch(1 0 0); /* White for primary sidebar elements */
+  --sidebar-primary-foreground: oklch(0.608 0.15 302.71); /* Rich magenta for primary sidebar text */
+  --sidebar-accent: oklch(0.548 0.22 328.363); /* Fuchsia for sidebar accents */
+  --sidebar-accent-foreground: oklch(1 0 0); /* White for sidebar accent text */
+  --sidebar-border: oklch(0.858 0.048 340.891); /* Blush pink for sidebar borders */
+  --sidebar-ring: oklch(0.608 0.15 302.71); /* Rich magenta for sidebar focus rings */
+}
+
+.dark {
+  /* Dark mode with feminine purple tones */
+  --background: oklch(0.145 0.02 302.71); /* Deep purple-black */
+  --foreground: oklch(0.971 0.024 320.207); /* Soft lavender text */
+  --card: oklch(0.205 0.03 302.71); /* Dark purple cards */
+  --card-foreground: oklch(0.855 0.106 339.67); /* Light pink text */
+  --popover: oklch(0.205 0.03 302.71); /* Dark purple popovers */
+  --popover-foreground: oklch(0.855 0.106 339.67); /* Light pink text */
+  --primary: oklch(0.855 0.106 339.67); /* Light pink primary in dark mode */
+  --primary-foreground: oklch(0.145 0.02 302.71); /* Dark text on primary */
+  --secondary: oklch(0.608 0.15 302.71); /* Rich magenta secondary */
+  --secondary-foreground: oklch(1 0 0); /* White text on secondary */
+  --muted: oklch(0.269 0.04 302.71); /* Muted dark purple */
+  --muted-foreground: oklch(0.708 0.08 320.207); /* Muted lavender text */
+  --accent: oklch(0.269 0.04 302.71); /* Dark purple accent */
+  --accent-foreground: oklch(0.855 0.106 339.67); /* Light pink accent text */
+  --destructive: oklch(0.577 0.245 27.325); /* Red for errors */
+  --destructive-foreground: oklch(1 0 0); /* White text on destructive */
+  --border: oklch(0.269 0.04 302.71); /* Dark purple borders */
+  --input: oklch(0.269 0.04 302.71); /* Dark purple inputs */
+  --ring: oklch(0.548 0.22 328.363); /* Fuchsia focus rings */
+  --chart-1: oklch(0.855 0.106 339.67); /* Light pink for charts */
+  --chart-2: oklch(0.608 0.15 302.71); /* Rich magenta for charts */
+  --chart-3: oklch(0.548 0.22 328.363); /* Fuchsia for charts */
+  --chart-4: oklch(0.708 0.08 320.207); /* Lavender for charts */
+  --chart-5: oklch(0.858 0.048 340.891); /* Blush pink for charts */
+  --sidebar: oklch(0.205 0.03 302.71); /* Dark purple sidebar */
+  --sidebar-foreground: oklch(0.855 0.106 339.67); /* Light pink sidebar text */
+  --sidebar-primary: oklch(0.855 0.106 339.67); /* Light pink primary sidebar */
+  --sidebar-primary-foreground: oklch(0.145 0.02 302.71); /* Dark text on primary */
+  --sidebar-accent: oklch(0.269 0.04 302.71); /* Dark purple sidebar accent */
+  --sidebar-accent-foreground: oklch(0.855 0.106 339.67); /* Light pink accent text */
+  --sidebar-border: oklch(0.269 0.04 302.71); /* Dark purple sidebar borders */
+  --sidebar-ring: oklch(0.548 0.22 328.363); /* Fuchsia sidebar focus rings */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Ultra-luxury typography system */
+  .font-heading {
+    font-family: "DM Serif Display", "Playfair Display", serif;
+    font-feature-settings: "ss01" 1, "ss02" 1;
+  }
+
+  .font-body {
+    font-family: "DM Sans", "Inter", sans-serif;
+  }
+
+  /* Luxury spacing system */
+  .luxury-spacing {
+    @apply space-y-16 md:space-y-24 lg:space-y-32;
+  }
+
+  /* Premium shadows with feminine touch */
+  .luxury-shadow {
+    box-shadow: 0 1px 3px 0 rgb(155 89 182 / 0.1), 0 1px 2px -1px rgb(155 89 182 / 0.1), 0 0 0 1px
+      rgb(155 89 182 / 0.05);
+  }
+
+  .luxury-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgb(155 89 182 / 0.1), 0 4px 6px -4px rgb(155 89 182 / 0.1), 0 0 0 1px
+      rgb(155 89 182 / 0.05);
+  }
+}
+
+@layer utilities {
+  /* Luxury animations */
+  .luxury-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .luxury-shadow {
+    box-shadow: 0 1px 3px 0 rgb(155 89 182 / 0.1), 0 1px 2px -1px rgb(155 89 182 / 0.1), 0 0 0 1px
+      rgb(155 89 182 / 0.05);
+  }
+
+  .luxury-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgb(155 89 182 / 0.1), 0 4px 6px -4px rgb(155 89 182 / 0.1), 0 0 0 1px
+      rgb(155 89 182 / 0.05);
+  }
+}
