@@ -24,7 +24,7 @@ export const emailTemplates = {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">Skirté</div>
+              <div class="logo">Rahal</div>
               <h1>Thank you for your order!</h1>
               <p>Your order has been confirmed and will be shipped soon.</p>
             </div>
@@ -80,7 +80,7 @@ export const emailTemplates = {
 
             <div class="footer">
               <p>Questions? Contact us at <a href="mailto:care@skirte.com">care@skirte.com</a></p>
-              <p>&copy; ${new Date().getFullYear()} Skirté. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} Rahal. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -106,14 +106,14 @@ export const emailTemplates = {
   }),
 
   welcomeEmail: (userData: any) => ({
-    subject: "Welcome to Skirté - Your Journey Begins",
+    subject: "Welcome to Rahal - Your Journey Begins",
     html: `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Welcome to Skirté</title>
+          <title>Welcome to Rahal</title>
           <style>
             body { font-family: 'Source Sans Pro', Arial, sans-serif; line-height: 1.6; color: #475569; margin: 0; padding: 0; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -129,7 +129,7 @@ export const emailTemplates = {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">Skirté</div>
+              <div class="logo">Rahal</div>
               <h1>Welcome, ${userData.fullName}!</h1>
               <p>We're thrilled to have you join our community of style enthusiasts.</p>
             </div>
@@ -137,7 +137,7 @@ export const emailTemplates = {
             <div class="content">
               <p>Dear ${userData.fullName},</p>
               
-              <p>Welcome to Skirté, where elegance meets everyday sophistication. We're passionate about creating skirts that move with you and last beyond seasons.</p>
+              <p>Welcome to Rahal, where elegance meets everyday sophistication. We're passionate about creating skirts that move with you and last beyond seasons.</p>
 
               <div class="feature">
                 <div class="feature-icon">✨</div>
@@ -172,18 +172,18 @@ export const emailTemplates = {
 
             <div class="footer">
               <p>Follow us for style inspiration and exclusive offers</p>
-              <p>&copy; ${new Date().getFullYear()} Skirté. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} Rahal. All rights reserved.</p>
             </div>
           </div>
         </body>
       </html>
     `,
     text: `
-      Welcome to Skirté, ${userData.fullName}!
+      Welcome to Rahal, ${userData.fullName}!
       
       We're thrilled to have you join our community of style enthusiasts.
       
-      At Skirté, we're passionate about creating skirts that move with you and last beyond seasons.
+      At Rahal, we're passionate about creating skirts that move with you and last beyond seasons.
       
       What you can expect:
       - Premium quality materials and craftsmanship
@@ -219,7 +219,7 @@ export const emailTemplates = {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">Skirté</div>
+              <div class="logo">Rahal</div>
               <h1>${content.title}</h1>
             </div>
             
@@ -238,7 +238,7 @@ export const emailTemplates = {
             </div>
 
             <div class="footer">
-              <p>You're receiving this email because you subscribed to Skirté updates.</p>
+              <p>You're receiving this email because you subscribed to Rahal updates.</p>
               <p>
                 <a href="${process.env.NEXT_PUBLIC_SITE_URL}/unsubscribe?email={{email}}" class="unsubscribe">
                   Unsubscribe
@@ -247,7 +247,7 @@ export const emailTemplates = {
                   Visit our website
                 </a>
               </p>
-              <p>&copy; ${new Date().getFullYear()} Skirté. All rights reserved.</p>
+              <p>&copy; ${new Date().getFullYear()} Rahal. All rights reserved.</p>
             </div>
           </div>
         </body>

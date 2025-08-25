@@ -84,7 +84,7 @@ export function AuthForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50 px-4">
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl font-heading font-bold text-primary">Welcome to Skirté</CardTitle>
+          <CardTitle className="text-3xl font-heading font-bold text-primary">Welcome to Rahal</CardTitle>
           <CardDescription className="text-muted-foreground">Join our luxury fashion community</CardDescription>
         </CardHeader>
         <CardContent>

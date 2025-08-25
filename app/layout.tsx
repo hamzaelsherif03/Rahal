@@ -22,7 +22,7 @@ export const metadata = {
     template: "%s | Rahal",
   },
   description:
-    "Experience SKIRTÉ's exclusive collection of ultra-luxury skirts, meticulously crafted from the world's finest materials. Timeless elegance meets contemporary sophistication. Complimentary shipping worldwide.",
+    "Experience Rahal's exclusive collection of ultra-luxury skirts, meticulously crafted from the world's finest materials. Timeless elegance meets contemporary sophistication. Complimentary shipping worldwide.",
   keywords: [
     "ultra-luxury skirts",
     "couture fashion",
@@ -34,9 +34,9 @@ export const metadata = {
     "premium materials",
     "timeless elegance",
   ],
-  authors: [{ name: "SKIRTÉ Atelier" }],
-  creator: "SKIRTÉ",
-  publisher: "SKIRTÉ",
+  authors: [{ name: "Rahal Atelier" }],
+  creator: "Rahal",
+  publisher: "Rahal",
   formatDetection: {
     email: false,
     address: false,
@@ -45,16 +45,16 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "SKIRTÉ - Luxury Pleated Skirts Collection",
+    title: "Rahal - Luxury Pleated Skirts Collection",
     description:
-      "Discover the epitome of luxury fashion with SKIRTÉ's exclusive collection. Each piece embodies timeless elegance and exceptional craftsmanship for the discerning woman.",
-    siteName: "SKIRTÉ",
+      "Discover the epitome of luxury fashion with Rahal's exclusive collection. Each piece embodies timeless elegance and exceptional craftsmanship for the discerning woman.",
+    siteName: "Rahal",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SKIRTÉ - Ultra-Luxury Fashion Atelier",
+    title: "Rahal - Ultra-Luxury Fashion Atelier",
     description: "Timeless elegance meets contemporary sophistication. Discover our exclusive collection.",
-    creator: "@skirte_atelier",
+    creator: "@rahal_atelier",
   },
   robots: {
     index: true,

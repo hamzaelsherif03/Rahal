@@ -138,7 +138,7 @@ export default async function AdminDashboard() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage your Skirté store</p>
+            <p className="text-muted-foreground">Manage your Rahal store</p>
           </div>
 
           {/* Stats Grid */}

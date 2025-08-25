@@ -46,7 +46,7 @@ export function AdminNav() {
           {/* Logo */}
           <div className="flex items-center px-6 py-4 border-b border-border">
             <Link href="/admin" className="text-xl font-heading font-bold text-primary">
-              Skirté Admin
+              Rahal Admin
             </Link>
           </div>
 
