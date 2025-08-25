@@ -18,7 +18,7 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   title: {
-    default: "SKIRTÉ - Ultra-Luxury Fashion Atelier | Couture Skirts & Premium Women's Clothing",
+    default: "SKIRTÉ - Luxury Pleated Skirts Collection | Premium Designer Skirts",
     template: "%s | SKIRTÉ",
   },
   description:
@@ -45,7 +45,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "SKIRTÉ - Ultra-Luxury Fashion Atelier",
+    title: "SKIRTÉ - Luxury Pleated Skirts Collection",
     description:
       "Discover the epitome of luxury fashion with SKIRTÉ's exclusive collection. Each piece embodies timeless elegance and exceptional craftsmanship for the discerning woman.",
     siteName: "SKIRTÉ",
