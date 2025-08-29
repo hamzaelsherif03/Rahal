@@ -11,4 +11,3 @@ export default async function ProductPage({ params }: { params: { handle: string
 
   return <ProductDetails product={product} />;
 }
-}
