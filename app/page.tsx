@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { UserMenu } from "@/components/auth/user-menu"
-import { WishlistButton } from "@/components/wishlist/wishlist-button"
-import { ReviewsList } from "@/components/reviews/reviews-list"
-import { ReviewForm } from "@/components/reviews/review-form"
-import { SizeGuideModal } from "@/components/size-guide/size-guide-modal"
-import { NewsletterSignup } from "@/components/newsletter/newsletter-signup"
+import { useEffect, useMemo, useState } from "react";
+import { UserMenu } from "@/components/auth/user-menu";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { ReviewsList } from "@/components/reviews/reviews-list";
+import { ReviewForm } from "@/components/reviews/review-form";
+import { SizeGuideModal } from "@/components/size-guide/size-guide-modal";
+import { NewsletterSignup } from "@/components/newsletter/newsletter-signup";
+import { getProducts } from "@/lib/shopify";
 
-// --- Mock Catalog ---
-const PRODUCTS = [
+// Fallback products in case Shopify API fails
+const FALLBACK_PRODUCTS = [
   {
     id: "pleated-midi-purple",
     title: "Royal Purple Pleated Midi",
@@ -52,7 +53,10 @@ const PRODUCTS = [
     tags: ["casual", "feminine"],
     colors: ["Blush Pink", "Soft Lavender", "Cream"],
     sizes: ["XS", "S", "M", "L", "XL"],
-    images: ["/cute-blush-pink-pleated-mini-skirt-feminine-style.png", "/pink-pleated-mini-skirt-casual-styling.png"],
+    images: [
+      "/cute-blush-pink-pleated-mini-skirt-feminine-style.png",
+      "/pink-pleated-mini-skirt-casual-styling.png",
+    ],
     description:
       "Playful pleated mini in soft blush pink. Perfect for casual elegance with its flirty length and feminine pleating that adds movement to every step.",
     collection: "Everyday Chic",
@@ -73,44 +77,106 @@ const PRODUCTS = [
       "Romantic pleated midi in soft lavender. Delicate pleating creates a dreamy silhouette perfect for spring occasions and feminine styling.",
     collection: "Romantic Collection",
   },
-]
+];
 
-const CURRENCIES = ["USD", "EUR", "EGP", "GBP"] // quick selector like Shopify's storefront
+const CURRENCIES = ["EGP"]; // Only Egyptian Pound
 
 function money(n, currency) {
-  const symbol = { USD: "$", EUR: "€", EGP: "E£", GBP: "£" }[currency] || "$"
-  return `${symbol}${n.toFixed(2)}`
+  // Always use EGP
+  return `E£${n.toFixed(2)}`;
 }
 
 function classNames(...xs) {
-  return xs.filter(Boolean).join(" ")
+  return xs.filter(Boolean).join(" ");
 }
 
 // --- Mini Router ---
 function useRouter() {
-  const [route, setRoute] = useState({ name: "home" })
-  const push = (r) => setRoute(r)
-  return { route, push }
+  const [route, setRoute] = useState({ name: "home" });
+  const push = (r) => setRoute(r);
+  return { route, push };
 }
 
 export default function RahalTheme() {
-  const { route, push } = useRouter()
-  const [currency, setCurrency] = useState("USD")
-  const [cart, setCart] = useState([]) // {id, title, price, qty, color, size, image}
+  const { route, push } = useRouter();
+  const [currency, setCurrency] = useState("EGP");
+  const [cart, setCart] = useState([]); // {id, title, price, qty, color, size, image}
+  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const subtotal = useMemo(() => cart.reduce((s, i) => s + i.price * i.qty, 0), [cart])
+  // Fetch products from Shopify on component mount
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const shopifyProducts = await getProducts(8); // Fetch 8 products
+        if (shopifyProducts && shopifyProducts.length > 0) {
+          // Map Shopify products to our format
+          const formattedProducts = shopifyProducts.map((product) => {
+            // Extract unique colors and sizes from variants
+            const colors = [];
+            const sizes = [];
 
-  const shipping = subtotal > 150 ? 0 : subtotal === 0 ? 0 : 9
-  const total = subtotal + shipping
+            product.variants?.edges?.forEach((variantEdge) => {
+              const variant = variantEdge.node;
+              variant.selectedOptions?.forEach((option) => {
+                if (
+                  option.name.toLowerCase() === "color" &&
+                  !colors.includes(option.value)
+                ) {
+                  colors.push(option.value);
+                }
+                if (
+                  option.name.toLowerCase() === "size" &&
+                  !sizes.includes(option.value)
+                ) {
+                  sizes.push(option.value);
+                }
+              });
+            });
+
+            return {
+              id: product.id,
+              handle: product.handle,
+              title: product.title,
+              price: parseFloat(product.priceRange.minVariantPrice.amount),
+              rating: 4.7, // Default rating since Shopify doesn't provide this
+              tags: ["shopify"],
+              images: product.images.edges.map((edge) => edge.node.url),
+              description: product.description || "No description available",
+              collection: "Shopify Collection",
+              colors: colors.length > 0 ? colors : ["Default"],
+              sizes: sizes.length > 0 ? sizes : ["One Size"],
+            };
+          });
+          setProducts(formattedProducts);
+        }
+      } catch (error) {
+        console.error("Error fetching Shopify products:", error);
+        // Keep using fallback products on error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchProducts();
+  }, []);
+
+  const subtotal = useMemo(
+    () => cart.reduce((s, i) => s + i.price * i.qty, 0),
+    [cart]
+  );
+
+  const shipping = subtotal > 150 ? 0 : subtotal === 0 ? 0 : 9;
+  const total = subtotal + shipping;
 
   function addToCart(p, sel) {
-    const key = `${p.id}-${sel.color}-${sel.size}`
+    const key = `${p.id}-${sel.color}-${sel.size}`;
     setCart((prev) => {
-      const idx = prev.findIndex((x) => x.key === key)
+      const idx = prev.findIndex((x) => x.key === key);
       if (idx > -1) {
-        const copy = [...prev]
-        copy[idx] = { ...copy[idx], qty: copy[idx].qty + 1 }
-        return copy
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], qty: copy[idx].qty + 1 };
+        return copy;
       }
       return [
         ...prev,
@@ -124,23 +190,26 @@ export default function RahalTheme() {
           size: sel.size,
           image: p.images[0],
         },
-      ]
-    })
+      ];
+    });
   }
 
   function removeItem(key) {
-    setCart((prev) => prev.filter((x) => x.key !== key))
+    setCart((prev) => prev.filter((x) => x.key !== key));
   }
 
   function setQty(key, qty) {
-    setCart((prev) => prev.map((x) => (x.key === key ? { ...x, qty: Math.max(1, qty) } : x)))
+    setCart((prev) =>
+      prev.map((x) => (x.key === key ? { ...x, qty: Math.max(1, qty) } : x))
+    );
   }
 
   return (
     <>
       <div className="min-h-screen bg-background text-foreground">
         <div className="text-center text-sm bg-primary text-primary-foreground py-3 font-body tracking-wide">
-          Complimentary shipping on orders over {money(150, currency)} • Effortless returns within 30 days
+          Complimentary shipping on orders over {money(150, currency)} •
+          Effortless returns within 30 days
         </div>
 
         <header className="flex items-center justify-between px-8 md:px-16 py-8 border-b border-border/30 sticky top-0 bg-background/95 backdrop-blur-md z-30">
@@ -149,7 +218,11 @@ export default function RahalTheme() {
               onClick={() => push({ name: "home" })}
               className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <img src="/rahal-logo.png" alt="Rahal Logo" className="h-12 w-12 object-contain rounded-full" />
+              <img
+                src="/rahal-logo.png"
+                alt="Rahal Logo"
+                className="h-12 w-12 object-contain rounded-full"
+              />
             </button>
             <nav className="hidden md:flex gap-10 text-base font-body font-medium">
               <button
@@ -159,13 +232,17 @@ export default function RahalTheme() {
                 Collections
               </button>
               <button
-                onClick={() => push({ name: "collection", handle: "Evening Elegance" })}
+                onClick={() =>
+                  push({ name: "collection", handle: "Evening Elegance" })
+                }
                 className="hover:text-primary/70 transition-colors tracking-wide uppercase text-sm"
               >
                 Evening
               </button>
               <button
-                onClick={() => push({ name: "collection", handle: "Everyday Chic" })}
+                onClick={() =>
+                  push({ name: "collection", handle: "Everyday Chic" })
+                }
                 className="hover:text-primary/70 transition-colors tracking-wide uppercase text-sm"
               >
                 Everyday
@@ -182,11 +259,9 @@ export default function RahalTheme() {
             <select
               className="border border-border rounded-none px-4 py-2 text-sm bg-background font-body tracking-wide uppercase"
               value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
+              disabled
             >
-              {CURRENCIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
+              <option value="EGP">EGP</option>
             </select>
             <UserMenu />
             <button
@@ -194,7 +269,13 @@ export default function RahalTheme() {
               onClick={() => push({ name: "cart" })}
               aria-label="Shopping cart"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -215,10 +296,16 @@ export default function RahalTheme() {
           <HomeView
             onShop={() => push({ name: "collection", handle: "all" })}
             onOpen={(p) => push({ name: "product", id: p.id })}
+            products={products}
+            isLoading={isLoading}
           />
         )}
         {route.name === "collection" && (
-          <CollectionView handle={route.handle} onOpen={(p) => push({ name: "product", id: p.id })} />
+          <CollectionView
+            handle={route.handle}
+            onOpen={(p) => push({ name: "product", id: p.id })}
+            products={products}
+          />
         )}
         {route.name === "product" && (
           <ProductView
@@ -226,6 +313,7 @@ export default function RahalTheme() {
             currency={currency}
             onBack={() => push({ name: "collection", handle: "all" })}
             onAdd={addToCart}
+            products={products}
           />
         )}
         {route.name === "cart" && (
@@ -250,18 +338,29 @@ export default function RahalTheme() {
             onPlace={() => push({ name: "order-confirmation" })}
           />
         )}
-        {route.name === "order-confirmation" && <ThankYou onShop={() => push({ name: "collection", handle: "all" })} />}
+        {route.name === "order-confirmation" && (
+          <ThankYou
+            onShop={() => push({ name: "collection", handle: "all" })}
+          />
+        )}
 
         <footer className="border-t border-border/30 py-20 px-8 md:px-16 text-sm text-muted-foreground bg-card/50">
           <div className="grid md:grid-cols-4 gap-12 max-w-7xl mx-auto">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <img src="/rahal-logo.png" alt="Rahal Logo" className="h-16 w-16 object-contain rounded-full" />
-                <div className="text-2xl font-heading font-bold text-primary tracking-tight">RAHAL</div>
+                <img
+                  src="/rahal-logo.png"
+                  alt="Rahal Logo"
+                  className="h-16 w-16 object-contain rounded-full"
+                />
+                <div className="text-2xl font-heading font-bold text-primary tracking-tight">
+                  RAHAL
+                </div>
               </div>
               <p className="text-muted-foreground leading-relaxed font-body">
-                Curated exclusively for the feminine soul who values timeless elegance and exquisite pleated designs.
-                Each piece tells a story of grace and sophistication.
+                Curated exclusively for the feminine soul who values timeless
+                elegance and exquisite pleated designs. Each piece tells a story
+                of grace and sophistication.
               </p>
             </div>
             <div className="space-y-4">
@@ -272,7 +371,12 @@ export default function RahalTheme() {
                 <li>
                   <button
                     className="hover:text-primary transition-colors"
-                    onClick={() => push({ name: "collection", handle: "Signature Collection" })}
+                    onClick={() =>
+                      push({
+                        name: "collection",
+                        handle: "Signature Collection",
+                      })
+                    }
                   >
                     Signature Collection
                   </button>
@@ -280,7 +384,9 @@ export default function RahalTheme() {
                 <li>
                   <button
                     className="hover:text-primary transition-colors"
-                    onClick={() => push({ name: "collection", handle: "Evening Elegance" })}
+                    onClick={() =>
+                      push({ name: "collection", handle: "Evening Elegance" })
+                    }
                   >
                     Evening Elegance
                   </button>
@@ -288,7 +394,9 @@ export default function RahalTheme() {
                 <li>
                   <button
                     className="hover:text-primary transition-colors"
-                    onClick={() => push({ name: "collection", handle: "Everyday Chic" })}
+                    onClick={() =>
+                      push({ name: "collection", handle: "Everyday Chic" })
+                    }
                   >
                     Everyday Chic
                   </button>
@@ -296,7 +404,12 @@ export default function RahalTheme() {
                 <li>
                   <button
                     className="hover:text-primary transition-colors"
-                    onClick={() => push({ name: "collection", handle: "Romantic Collection" })}
+                    onClick={() =>
+                      push({
+                        name: "collection",
+                        handle: "Romantic Collection",
+                      })
+                    }
                   >
                     Romantic Collection
                   </button>
@@ -319,18 +432,26 @@ export default function RahalTheme() {
                 <li>
                   <button
                     className="hover:text-primary transition-colors"
-                    onClick={() => alert("Complimentary returns within 30 days")}
+                    onClick={() =>
+                      alert("Complimentary returns within 30 days")
+                    }
                   >
                     Returns & Exchanges
                   </button>
                 </li>
                 <li>
-                  <button className="hover:text-primary transition-colors" onClick={() => alert("Size guide opens")}>
+                  <button
+                    className="hover:text-primary transition-colors"
+                    onClick={() => alert("Size guide opens")}
+                  >
                     Size Consultation
                   </button>
                 </li>
                 <li>
-                  <button className="hover:text-primary transition-colors" onClick={() => alert("Care instructions")}>
+                  <button
+                    className="hover:text-primary transition-colors"
+                    onClick={() => alert("Care instructions")}
+                  >
                     Care Instructions
                   </button>
                 </li>
@@ -349,11 +470,11 @@ export default function RahalTheme() {
         </footer>
       </div>
     </>
-  )
+  );
 }
 
 // --- Views ---
-function HomeView({ onShop, onOpen }) {
+function HomeView({ onShop, onOpen, products, isLoading }) {
   return (
     <>
       <section className="relative flex flex-col items-center justify-center text-center py-32 md:py-48 px-8 bg-gradient-to-b from-background to-card/30">
@@ -364,13 +485,14 @@ function HomeView({ onShop, onOpen }) {
             <span className="font-bold text-primary">Grace</span>
           </h1>
           <p className="max-w-2xl text-lg md:text-xl text-muted-foreground font-body leading-relaxed tracking-wide">
-            Each pleated creation is meticulously crafted to embody feminine elegance and grace, designed for the woman
-            who appreciates the artistry of beautiful movement.
+            Each pleated creation is meticulously crafted to embody feminine
+            elegance and grace, designed for the woman who appreciates the
+            artistry of beautiful movement.
           </p>
           <div className="pt-8">
             <button
               onClick={() => {
-                onShop()
+                onShop();
               }}
               className="bg-primary text-primary-foreground px-12 py-4 font-body font-medium text-sm tracking-widest uppercase hover:bg-primary/90 transition-all duration-300 ease-out hover:scale-[1.02] luxury-shadow-lg rounded-full"
             >
@@ -386,9 +508,24 @@ function HomeView({ onShop, onOpen }) {
             Featured Pieces
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {PRODUCTS.map((p) => (
-              <ProductCard key={p.id} product={p} onOpen={() => onOpen(p)} />
-            ))}
+            {isLoading
+              ? // Loading state
+                Array(4)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-gray-200 h-96 w-full mb-4"></div>
+                      <div className="bg-gray-200 h-6 w-3/4 mb-2"></div>
+                      <div className="bg-gray-200 h-6 w-1/4"></div>
+                    </div>
+                  ))
+              : products.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onOpen={() => onOpen(p)}
+                  />
+                ))}
           </div>
         </div>
       </section>
@@ -401,33 +538,38 @@ function HomeView({ onShop, onOpen }) {
 
       <section className="py-24 px-8 md:px-16 text-center">
         <div className="max-w-4xl mx-auto space-y-8">
-          <h2 className="text-3xl font-heading font-light tracking-tight text-primary">Our Philosophy</h2>
+          <h2 className="text-3xl font-heading font-light tracking-tight text-primary">
+            Our Philosophy
+          </h2>
           <p className="text-lg text-muted-foreground font-body leading-relaxed">
-            We believe in the poetry of pleated fabric and the power of feminine grace. Every piece in our collection
-            celebrates the art of movement, crafted with meticulous attention to detail for the woman who understands
-            that true elegance lies in the beauty of flowing fabric.
+            We believe in the poetry of pleated fabric and the power of feminine
+            grace. Every piece in our collection celebrates the art of movement,
+            crafted with meticulous attention to detail for the woman who
+            understands that true elegance lies in the beauty of flowing fabric.
           </p>
         </div>
       </section>
     </>
-  )
+  );
 }
 
-function CollectionView({ handle, onOpen }) {
+function CollectionView({ handle, onOpen, products }) {
   const items = useMemo(() => {
-    if (!handle || handle === "all") return PRODUCTS
-    return PRODUCTS.filter((p) => p.collection === handle)
-  }, [handle])
+    if (!handle || handle === "all") return products;
+    return products.filter((p) => p.collection === handle);
+  }, [handle, products]);
 
   const handleSearch = (searchTerm: string) => {
     if (searchTerm.trim()) {
     }
-  }
+  };
 
   return (
     <section className="py-10 px-6 md:px-10">
       <div className="flex items-end justify-between mb-6">
-        <h1 className="text-3xl font-bold">{handle === "all" ? "All Skirts" : handle}</h1>
+        <h1 className="text-3xl font-bold">
+          {handle === "all" ? "All Skirts" : handle}
+        </h1>
         <div className="flex gap-3">
           <input
             placeholder="Search skirts"
@@ -449,13 +591,13 @@ function CollectionView({ handle, onOpen }) {
         ))}
       </div>
     </section>
-  )
+  );
 }
 
 function ProductCard({ product, onOpen }) {
   const handleProductClick = () => {
-    onOpen()
-  }
+    onOpen();
+  };
 
   return (
     <div className="group transition-all duration-300 ease-out">
@@ -483,25 +625,34 @@ function ProductCard({ product, onOpen }) {
               </span>
             ))}
           </div>
-          <div className="font-heading font-medium text-lg tracking-wide">{product.title}</div>
-          <div className="text-muted-foreground font-body text-sm tracking-wide uppercase">{product.collection}</div>
-          <div className="font-body font-semibold text-lg">${product.price}</div>
+          <div className="font-heading font-medium text-lg tracking-wide">
+            {product.title}
+          </div>
+          <div className="text-muted-foreground font-body text-sm tracking-wide uppercase">
+            {product.collection}
+          </div>
+          <div className="font-body font-semibold text-lg">
+            {money(product.price, "EGP")}
+          </div>
         </div>
       </button>
     </div>
-  )
+  );
 }
 
-function ProductView({ id, onBack, onAdd, currency }) {
-  const p = PRODUCTS.find((x) => x.id === id)
-  const [image, setImage] = useState(0)
-  const [color, setColor] = useState(p.colors[0])
-  const [size, setSize] = useState(p.sizes[0])
+function ProductView({ id, onBack, onAdd, currency, products }) {
+  const p = products.find((x) => x.id === id);
+  const [image, setImage] = useState(0);
+  const [color, setColor] = useState(p?.colors?.[0] || "Default");
+  const [size, setSize] = useState(p?.sizes?.[0] || "M");
 
   return (
     <>
       <section className="py-10 px-6 md:px-10">
-        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+        <button
+          onClick={onBack}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
           ← Back to shop
         </button>
         <div className="grid lg:grid-cols-2 gap-8">
@@ -509,88 +660,118 @@ function ProductView({ id, onBack, onAdd, currency }) {
           <div>
             <div className="relative">
               <img
-                src={p.images[image] || "/placeholder.svg"}
-                alt={p.title}
+                src={(p?.images && p.images[image]) || "/placeholder.svg"}
+                alt={p?.title || "Product"}
                 className="w-full h-[520px] object-cover rounded-2xl"
               />
               <div className="absolute top-4 right-4">
-                <WishlistButton productId={p.id} className="bg-white/80 backdrop-blur-sm hover:bg-white" />
+                <WishlistButton
+                  productId={p?.id}
+                  className="bg-white/80 backdrop-blur-sm hover:bg-white"
+                />
               </div>
             </div>
             <div className="flex gap-3 mt-3">
-              {p.images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setImage(i)}
-                  className={classNames(
-                    "w-24 h-24 rounded-lg overflow-hidden border-2 transition-colors",
-                    i === image ? "border-primary" : "border-border hover:border-muted-foreground",
-                  )}
-                >
-                  <img src={img || "/placeholder.svg"} alt="thumb" className="w-full h-full object-cover" />
-                </button>
-              ))}
+              {p?.images && Array.isArray(p.images)
+                ? p.images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setImage(i)}
+                      className={classNames(
+                        "w-24 h-24 rounded-lg overflow-hidden border-2 transition-colors",
+                        i === image
+                          ? "border-primary"
+                          : "border-border hover:border-muted-foreground"
+                      )}
+                    >
+                      <img
+                        src={img || "/placeholder.svg"}
+                        alt="thumb"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))
+                : null}
             </div>
           </div>
 
           {/* Info */}
           <div>
-            <h1 className="text-3xl font-heading font-bold">{p.title}</h1>
+            <h1 className="text-3xl font-heading font-bold">
+              {p?.title || "Product"}
+            </h1>
             <div className="flex items-center gap-3 mt-2">
-              <div className="text-xl font-bold">{money(p.price, currency)}</div>
-              {p.compareAt && <div className="line-through text-muted-foreground">{money(p.compareAt, currency)}</div>}
-              <div className="text-yellow-500" aria-label={`Rating ${p.rating}`}>
-                {"★".repeat(Math.round(p.rating))}
+              <div className="text-xl font-bold">
+                {money(p?.price || 0, currency)}
               </div>
+              {p?.compareAt && (
+                <div className="line-through text-muted-foreground">
+                  {money(p.compareAt, currency)}
+                </div>
+              )}
+              {p?.rating && (
+                <div
+                  className="text-yellow-500"
+                  aria-label={`Rating ${p.rating}`}
+                >
+                  {"★".repeat(Math.round(p.rating))}
+                </div>
+              )}
             </div>
-            <p className="text-muted-foreground mt-4 leading-relaxed">{p.description}</p>
+            <p className="text-muted-foreground mt-4 leading-relaxed">
+              {p?.description || "No description available"}
+            </p>
 
-            <div className="mt-6">
-              <div className="font-semibold mb-3">Color</div>
-              <div className="flex gap-2">
-                {p.colors.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setColor(c)}
-                    className={classNames(
-                      "px-4 py-2 rounded-full border-2 transition-all font-medium",
-                      c === color
-                        ? "border-primary text-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground",
-                    )}
-                  >
-                    {c}
-                  </button>
-                ))}
+            {p?.colors && Array.isArray(p.colors) && p.colors.length > 0 && (
+              <div className="mt-6">
+                <div className="font-semibold mb-3">Color</div>
+                <div className="flex gap-2">
+                  {p.colors.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setColor(c)}
+                      className={classNames(
+                        "px-4 py-2 rounded-full border-2 transition-all font-medium",
+                        c === color
+                          ? "border-primary text-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground"
+                      )}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="font-semibold">Size</div>
-                <SizeGuideModal />
+            {p?.sizes && Array.isArray(p.sizes) && p.sizes.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="font-semibold">Size</div>
+                  <SizeGuideModal />
+                </div>
+                <div className="flex gap-2">
+                  {p.sizes.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSize(s)}
+                      className={classNames(
+                        "px-4 py-2 rounded-full border-2 transition-all font-medium min-w-[3rem]",
+                        s === size
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border hover:border-muted-foreground"
+                      )}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2">
-                {p.sizes.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setSize(s)}
-                    className={classNames(
-                      "px-4 py-2 rounded-full border-2 transition-all font-medium min-w-[3rem]",
-                      s === size
-                        ? "border-foreground bg-foreground text-background"
-                        : "border-border hover:border-muted-foreground",
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
 
             <div className="mt-8 flex gap-3">
               <button
-                onClick={() => onAdd(p, { color, size })}
+                onClick={() => p && onAdd(p, { color, size })}
                 className="flex-1 bg-primary text-primary-foreground px-6 py-4 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
               >
                 Add to Cart
@@ -603,7 +784,12 @@ function ProductView({ id, onBack, onAdd, currency }) {
             <div className="mt-6 text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
               <div className="flex items-center gap-4 text-center">
                 <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -614,7 +800,12 @@ function ProductView({ id, onBack, onAdd, currency }) {
                   Complimentary shipping over {money(150, currency)}
                 </div>
                 <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -625,7 +816,12 @@ function ProductView({ id, onBack, onAdd, currency }) {
                   30-day returns
                 </div>
                 <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -653,30 +849,52 @@ function ProductView({ id, onBack, onAdd, currency }) {
         <div className="mt-16">
           <h3 className="text-xl font-semibold mb-6">You might also like</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {PRODUCTS.filter((x) => x.id !== p.id)
-              .slice(0, 4)
-              .map((pp) => (
-                <div key={pp.id} className="border rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                  <img src={pp.images[0] || "/placeholder.svg"} alt={pp.title} className="w-full h-48 object-cover" />
-                  <div className="p-3">
-                    <div className="font-medium text-sm">{pp.title}</div>
-                    <div className="font-bold text-sm">${pp.price}</div>
+            {products &&
+              products
+                .filter((x) => x.id !== p?.id)
+                .slice(0, 4)
+                .map((pp) => (
+                  <div
+                    key={pp.id}
+                    className="border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <img
+                      src={pp.images?.[0] || "/placeholder.svg"}
+                      alt={pp.title}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="p-3">
+                      <div className="font-medium text-sm">{pp.title}</div>
+                      <div className="font-bold text-sm">
+                        {money(pp.price || 0, currency)}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
           </div>
         </div>
       </section>
     </>
-  )
+  );
 }
 
-function CartView({ cart, subtotal, shipping, total, currency, onQty, onRemove, onCheckout }) {
+function CartView({
+  cart,
+  subtotal,
+  shipping,
+  total,
+  currency,
+  onQty,
+  onRemove,
+  onCheckout,
+}) {
   return (
     <section className="py-10 px-6 md:px-10">
       <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
       {cart.length === 0 ? (
-        <div className="text-gray-500">Your cart is empty. Time to fix that.</div>
+        <div className="text-gray-500">
+          Your cart is empty. Time to fix that.
+        </div>
       ) : (
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
@@ -691,7 +909,9 @@ function CartView({ cart, subtotal, shipping, total, currency, onQty, onRemove, 
                   <div className="flex justify-between">
                     <div>
                       <div className="font-semibold">{item.title}</div>
-                      <div className="text-sm text-gray-500">{money(item.price, currency)}</div>
+                      <div className="text-sm text-gray-500">
+                        {money(item.price, currency)}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -711,7 +931,9 @@ function CartView({ cart, subtotal, shipping, total, currency, onQty, onRemove, 
                   </div>
                   <div className="mt-2 flex justify-between items-center">
                     <div className="font-semibold">Total</div>
-                    <div className="font-bold text-sm">{money(item.price * item.qty, currency)}</div>
+                    <div className="font-bold text-sm">
+                      {money(item.price * item.qty, currency)}
+                    </div>
                   </div>
                   <button
                     onClick={() => onRemove(item.key)}
@@ -726,11 +948,15 @@ function CartView({ cart, subtotal, shipping, total, currency, onQty, onRemove, 
           <div className="bg-gray-100 p-6 rounded-lg space-y-4">
             <div className="flex justify-between">
               <div className="font-semibold">Subtotal</div>
-              <div className="font-bold text-sm">{money(subtotal, currency)}</div>
+              <div className="font-bold text-sm">
+                {money(subtotal, currency)}
+              </div>
             </div>
             <div className="flex justify-between">
               <div className="font-semibold">Shipping</div>
-              <div className="font-bold text-sm">{money(shipping, currency)}</div>
+              <div className="font-bold text-sm">
+                {money(shipping, currency)}
+              </div>
             </div>
             <div className="flex justify-between">
               <div className="font-semibold">Total</div>
@@ -746,7 +972,7 @@ function CartView({ cart, subtotal, shipping, total, currency, onQty, onRemove, 
         </div>
       )}
     </section>
-  )
+  );
 }
 
 function CheckoutView({ cart, subtotal, shipping, total, currency, onPlace }) {
@@ -764,14 +990,18 @@ function CheckoutView({ cart, subtotal, shipping, total, currency, onPlace }) {
               />
               <div className="flex-1">
                 <div className="font-semibold">{item.title}</div>
-                <div className="text-sm text-gray-500">{money(item.price, currency)}</div>
+                <div className="text-sm text-gray-500">
+                  {money(item.price, currency)}
+                </div>
                 <div className="mt-2 flex justify-between items-center">
                   <div className="font-semibold">Quantity</div>
                   <div className="font-bold text-sm">{item.qty}</div>
                 </div>
                 <div className="mt-2 flex justify-between items-center">
                   <div className="font-semibold">Total</div>
-                  <div className="font-bold text-sm">{money(item.price * item.qty, currency)}</div>
+                  <div className="font-bold text-sm">
+                    {money(item.price * item.qty, currency)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -799,14 +1029,16 @@ function CheckoutView({ cart, subtotal, shipping, total, currency, onPlace }) {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function ThankYou({ onShop }) {
   return (
     <section className="py-10 px-6 md:px-10 text-center">
       <h1 className="text-3xl font-bold mb-6">Thank You for Your Order!</h1>
-      <p className="text-gray-600 mb-8">We appreciate your purchase. Enjoy your new skirt!</p>
+      <p className="text-gray-600 mb-8">
+        We appreciate your purchase. Enjoy your new skirt!
+      </p>
       <button
         onClick={onShop}
         className="bg-primary text-primary-foreground px-8 py-4 rounded-full text-lg font-semibold hover:bg-primary/90 transition-colors"
@@ -814,5 +1046,5 @@ function ThankYou({ onShop }) {
         Shop More Skirts
       </button>
     </section>
-  )
+  );
 }
